@@ -1,0 +1,26 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+exporters:
+  debug:
+    verbosity: detailed
+processors:
+  metricsonspan:
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [metricsonspan]
+      exporters: 
+        - debug
+    metrics:
+      receivers: [otlp]
+      processors: [metricsonspan]
+      exporters: 
+        - debug
+    logs:
+      receivers: [otlp]
+      exporters: 
+        - debug

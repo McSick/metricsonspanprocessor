@@ -1,0 +1,12 @@
+dist:
+  name: otelcol-custom
+  description: Local OpenTelemetry Collector binary
+  output_path: /tmp/dist
+  otelcol_version: 0.88.0
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.88.0
+processors:
+  - gomod: github.com/mcsick/metricsonspanprocessor v0.0.1
+    path: metricsonspanprocessor
+receivers:
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.88.0
