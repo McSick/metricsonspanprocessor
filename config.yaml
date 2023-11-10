@@ -1,23 +1,31 @@
 receivers:
+  hostmetrics:
+    collection_interval: 15s
+    scrapers:
+      memory:
   otlp:
     protocols:
       http:
       grpc:
 exporters:
   debug:
-    verbosity: normal
+    verbosity: detailed
 processors:
+  resourcedetection/env:
+    detectors: [env]
+    timeout: 2s
+    override: false
   metricsonspan:
 service:
   pipelines:
-    # traces:
-    #   receivers: [otlp]
-    #   processors: [metricsonspan]
-    #   exporters: 
-    #     - debug
-    metrics:
+    traces:
       receivers: [otlp]
       processors: [metricsonspan]
+      exporters: 
+        - debug
+    metrics:
+      receivers: [hostmetrics]
+      processors: [resourcedetection/env,metricsonspan]
       exporters: 
         - debug
     logs:

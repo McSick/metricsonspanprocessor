@@ -81,6 +81,7 @@ func newM2PMetricProcessor(set component.TelemetrySettings, cfg *Config) (*m2pMe
 	return p, nil
 }
 
+// Need to clean, TTL, locking has to be per metric not datastore
 var (
 	storedmetrics map[string]pmetric.ScopeMetricsSlice = make(map[string]pmetric.ScopeMetricsSlice)
 )
@@ -112,6 +113,32 @@ type m2pSpanProcessor struct {
 }
 
 func (sp *m2pSpanProcessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
+	for i := 0; i < td.ResourceSpans().Len(); i++ {
+		rs := td.ResourceSpans().At(i)
+		hostname, found := rs.Resource().Attributes().Get("service.name")
+		if !found {
+			sp.logger.Info("Error getting service name")
+			continue
+		}
+		metrics := storedmetrics[hostname.AsString()]
+		sp.logger.Info("Found Metrics for Service", zap.String("service", hostname.AsString()))
+		for j := 0; j < rs.ScopeSpans().Len(); j++ {
+			ss := rs.ScopeSpans().At(j)
+			for k := 0; k < ss.Spans().Len(); k++ {
+				s := ss.Spans().At(k)
+				for l := 0; l < metrics.Len(); l++ {
+					n := metrics.At(l).Metrics().At(0).Name()
+					datapoints := metrics.At(l).Metrics().At(0).Sum().DataPoints()
+					for dp := 0; dp < datapoints.Len(); dp++ {
+						// datapoint := datapoints.At(dp)
+						// attrs := datapoint.Attributes()
+						// s.Attributes().PutDouble(n+"."+attr.AsString(), datapoint.DoubleValue())
+					}
+					s.Attributes().PutDouble(n, 0)
+				}
+			}
+		}
+	}
 
 	return td, nil
 }
