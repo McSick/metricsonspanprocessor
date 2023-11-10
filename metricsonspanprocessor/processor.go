@@ -81,11 +81,27 @@ func newM2PMetricProcessor(set component.TelemetrySettings, cfg *Config) (*m2pMe
 	return p, nil
 }
 
+var (
+	storedmetrics map[string]pmetric.ScopeMetricsSlice = make(map[string]pmetric.ScopeMetricsSlice)
+)
+
 type m2pMetricProcessor struct {
 	logger *zap.Logger
 }
 
 func (mp *m2pMetricProcessor) processMetrics(ctx context.Context, md pmetric.Metrics) (pmetric.Metrics, error) {
+	mp.logger.Info("Made it to Metrics")
+	for i := 0; i < md.ResourceMetrics().Len(); i++ {
+		rm := md.ResourceMetrics().At(i)
+		rm.ScopeMetrics()
+		hostname, found := rm.Resource().Attributes().Get("service.name")
+		if !found {
+			mp.logger.Info("Error getting service name")
+			continue
+		}
+		mp.logger.Info("Found Metrics for Service", zap.String("service", hostname.AsString()))
+		storedmetrics[hostname.AsString()] = rm.ScopeMetrics()
+	}
 	return md, nil
 }
 
@@ -96,6 +112,7 @@ type m2pSpanProcessor struct {
 }
 
 func (sp *m2pSpanProcessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
+
 	return td, nil
 }
 

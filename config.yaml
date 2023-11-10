@@ -5,16 +5,16 @@ receivers:
       grpc:
 exporters:
   debug:
-    verbosity: detailed
+    verbosity: normal
 processors:
   metricsonspan:
 service:
   pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [metricsonspan]
-      exporters: 
-        - debug
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [metricsonspan]
+    #   exporters: 
+    #     - debug
     metrics:
       receivers: [otlp]
       processors: [metricsonspan]
